@@ -24,8 +24,9 @@ var (
 	versionsNamespaceID           = util.GetEnv("WORKERS_KV_VERSIONS_NAMESPACE_ID")
 	packagesNamespaceID           = util.GetEnv("WORKERS_KV_PACKAGES_NAMESPACE_ID")
 	aggregatedMetadataNamespaceID = util.GetEnv("WORKERS_KV_AGGREGATED_METADATA_NAMESPACE_ID")
-	accountID                     = util.GetEnv("WORKERS_KV_ACCOUNT_ID")
-	apiToken                      = util.GetEnv("WORKERS_KV_API_TOKEN")
+	accountID                     = util.GetEnv("CF_ACCOUNT_ID")
+	zoneID                        = util.GetEnv("CF_ZONE_ID")
+	apiToken                      = util.GetEnv("CF_API_TOKEN")
 	api                           = getAPI()
 )
 

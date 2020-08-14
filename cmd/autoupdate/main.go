@@ -145,7 +145,24 @@ func main() {
 
 			if versionsChanged || pkgChanged {
 				// Update aggregated package metadata for cdnjs API.
-				updateAggregatedMetadata(ctx, pckg, newAssets)
+				pkgMetadataFound := updateAggregatedMetadata(ctx, pckg, newAssets)
+
+				// Purge cache of this package's metadata
+				// (package top-level, list of versions, aggregated metadata).
+				cacheTags := []string{*pckg.Name}
+
+				if !pkgMetadataFound {
+					// This is a new package, so purge `/packages` cache tag,
+					// which contains the list of packages.
+					// Reference: http://metadata.speedcdnjs.com/packages
+					cacheTags = append(cacheTags, "/packages")
+				}
+
+				// Purge cache so the cdnjs API will fetch updated KV entries.
+				// Note, need to be careful of race conditions.
+				// If cache is purged but KV values are not yet propagated globally,
+				// it is possible the Worker will fetch stale entries from KV and cache them.
+				util.Check(kv.PurgeTags(cacheTags))
 			}
 		}
 	}
@@ -232,7 +249,7 @@ type aggregatedMetadataLog struct {
 }
 
 // Update aggregated package metadata for cdnjs API.
-func updateAggregatedMetadata(ctx context.Context, pckg *packages.Package, newAssets []packages.Asset) {
+func updateAggregatedMetadata(ctx context.Context, pckg *packages.Package, newAssets []packages.Asset) bool {
 	kvWrites, found, err := kv.UpdateAggregatedMetadata(ctx, pckg, newAssets)
 	if err != nil {
 		panic(fmt.Sprintf("(%s) failed to update aggregated metadata: %s", *pckg.Name, err))
@@ -252,6 +269,8 @@ func updateAggregatedMetadata(ctx context.Context, pckg *packages.Package, newAs
 	logsCommitMsg := fmt.Sprintf("Set %s aggregated metadata (%s)", *pckg.Name, *pckg.Version)
 	packages.GitCommit(ctx, logsPath, logsCommitMsg)
 	packages.GitPush(ctx, logsPath)
+
+	return found
 }
 
 // Update the package's filename if the latest

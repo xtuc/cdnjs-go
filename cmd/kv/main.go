@@ -83,6 +83,16 @@ func main() {
 
 			kv.OutputAggregate(pckg)
 		}
+	case "purge":
+		{
+			tag := flag.Arg(1)
+			if tag == "" {
+				panic("no tag specified")
+			}
+
+			util.Check(kv.PurgeTags([]string{tag}))
+			fmt.Printf("Purged `%s`.\n", tag)
+		}
 	default:
 		panic(fmt.Sprintf("unknown subcommand: `%s`", subcommand))
 	}

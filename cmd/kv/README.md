@@ -54,3 +54,25 @@ Gets the aggregated metadata associated with a package in KV.
 ```
 make kv && ./bin/kv aggregate jquery
 ```
+
+## `purge`
+
+Purges cache by [tag](https://developers.cloudflare.com/workers/reference/apis/cache/).
+
+To purge cache for a new package:
+
+```
+make kv && ./bin/kv purge /packages
+```
+
+To purge cache for package-level metadata, list of versions, and aggregated metadata:
+
+```
+make kv && ./bin/kv purge a-happy-tyler
+```
+
+To purge cache of a specific version:
+
+```
+./bin/kv purge a-happy-tyler/1.0.0
+```

@@ -50,8 +50,9 @@ This repository contains various tools that we use to help with the process of m
 - `WORKERS_KV_VERSIONS_NAMESPACE_ID` workers kv namespace ID containing metadata for versions
 - `WORKERS_KV_PACKAGES_NAMESPACE_ID` workers kv namespace ID containing metadata for packages
 - `WORKERS_KV_AGGREGATED_METADATA_NAMESPACE_ID` workers kv namespace ID containing aggregated metadata for packages
-- `WORKERS_KV_ACCOUNT_ID` workers kv account ID
-- `WORKERS_KV_API_TOKEN` workers kv api token
+- `CF_ACCOUNT_ID` cloudflare kv account ID
+- `CF_ZONE_ID` cloudflare kv zone ID
+- `CF_API_TOKEN` cloudflare api token
 
 ## Dependencies
 
