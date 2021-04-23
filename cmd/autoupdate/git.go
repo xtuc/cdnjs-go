@@ -53,15 +53,15 @@ func updateGit(ctx context.Context, pckg *packages.Package) ([]newVersionToCommi
 	existingVersionSet := pckg.Versions()
 
 	util.Debugf(ctx, "existing git versions: %v\n", existingVersionSet)
-	lastExistingVersion, allExisting := git.GetMostRecentExistingVersion(ctx, existingVersionSet, gitVersions)
+	lastExistingVersionInGit, allExistingInCDNJS := git.GetMostRecentExistingVersion(ctx, existingVersionSet, gitVersions)
 
 	// add all existing versions to all versions list
-	for _, v := range allExisting {
+	for _, v := range allExistingInCDNJS {
 		allVersions = append(allVersions, version(v))
 	}
 
-	if lastExistingVersion != nil {
-		util.Debugf(ctx, "last existing version: %s\n", lastExistingVersion.Version)
+	if lastExistingVersionInGit != nil {
+		util.Debugf(ctx, "last existing version: %s\n", lastExistingVersionInGit.Version)
 
 		versionDiff := gitVersionDiff(gitVersions, existingVersionSet)
 
@@ -69,7 +69,7 @@ func updateGit(ctx context.Context, pckg *packages.Package) ([]newVersionToCommi
 
 		for i := len(versionDiff) - 1; i >= 0; i-- {
 			v := versionDiff[i]
-			if v.TimeStamp.After(lastExistingVersion.TimeStamp) {
+			if v.TimeStamp.After(lastExistingVersionInGit.TimeStamp) {
 				newGitVersions = append(newGitVersions, v)
 			}
 		}

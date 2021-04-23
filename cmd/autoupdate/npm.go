@@ -21,15 +21,15 @@ func updateNpm(ctx context.Context, pckg *packages.Package) ([]newVersionToCommi
 	util.Debugf(ctx, "existing npm versions: %v\n", existingVersionSet)
 
 	npmVersions, _ := npm.GetVersions(ctx, *pckg.Autoupdate.Target)
-	lastExistingVersion, allExisting := npm.GetMostRecentExistingVersion(ctx, existingVersionSet, npmVersions)
+	lastExistingVersionInNpm, allExistingInCDNJS := npm.GetMostRecentExistingVersion(ctx, existingVersionSet, npmVersions)
 
 	// add all existing versions to all versions list
-	for _, v := range allExisting {
+	for _, v := range allExistingInCDNJS {
 		allVersions = append(allVersions, version(v))
 	}
 
-	if lastExistingVersion != nil {
-		util.Debugf(ctx, "last existing version: %s\n", lastExistingVersion.Version)
+	if lastExistingVersionInNpm != nil {
+		util.Debugf(ctx, "last existing version: %s\n", lastExistingVersionInNpm.Version)
 
 		versionDiff := npmVersionDiff(npmVersions, existingVersionSet)
 		sort.Sort(npm.ByTimeStamp(versionDiff))
@@ -38,7 +38,7 @@ func updateNpm(ctx context.Context, pckg *packages.Package) ([]newVersionToCommi
 
 		for i := len(versionDiff) - 1; i >= 0; i-- {
 			v := versionDiff[i]
-			if v.TimeStamp.After(lastExistingVersion.TimeStamp) {
+			if v.TimeStamp.After(lastExistingVersionInNpm.TimeStamp) {
 				newNpmVersions = append(newNpmVersions, v)
 			}
 		}

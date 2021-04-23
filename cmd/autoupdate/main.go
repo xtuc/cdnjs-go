@@ -346,13 +346,15 @@ func getMostSimilarFilename(target string, filenames []string) string {
 func getLatestStableVersion(versions []version) *string {
 	var latest *string
 	var latestTime time.Time
+	var latestSemver semver.Version
 	for _, v := range versions {
 		vStr := v.Get()
 		if s, err := semver.Parse(vStr); err == nil && len(s.Pre) == 0 {
 			timeStamp := v.GetTimeStamp()
-			if latest == nil || timeStamp.After(latestTime) {
+			if latest == nil || timeStamp.After(latestTime) || (timeStamp.Equal(latestTime) && s.GT(latestSemver)) {
 				latest = &vStr
 				latestTime = timeStamp
+				latestSemver = s
 			}
 		}
 	}
@@ -360,14 +362,28 @@ func getLatestStableVersion(versions []version) *string {
 }
 
 // Gets the latest version by time stamp. If it does not exist, a nil *string is returned.
+// If two versions have the same time stamp, they will be compared by semver.
+// In this case if one of these versions is not in semver form, the one in semver form will be considered `latest`.
+// In this case if both are not semver, either could be the `latest`.
 func getLatestVersion(versions []version) *string {
 	var latest *string
 	var latestTime time.Time
+	var latestSemver *semver.Version
 	for _, v := range versions {
 		vStr, timeStamp := v.Get(), v.GetTimeStamp()
 		if latest == nil || timeStamp.After(latestTime) {
 			latest = &vStr
 			latestTime = timeStamp
+			if s, err := semver.Parse(vStr); err == nil {
+				latestSemver = &s
+			} else {
+				latestSemver = nil
+			}
+		} else if s, err := semver.Parse(vStr); err == nil && timeStamp.Equal(latestTime) && (latestSemver == nil || s.GT(*latestSemver)) {
+			// if time stamps are equal, compare by semver
+			latest = &vStr
+			latestTime = timeStamp
+			latestSemver = &s
 		}
 	}
 	return latest

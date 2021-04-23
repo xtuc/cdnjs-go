@@ -2,6 +2,7 @@ package git
 
 import (
 	"context"
+	"time"
 
 	"github.com/cdnjs/tools/util"
 )
@@ -25,6 +26,7 @@ func GetMostRecentExistingVersion(ctx context.Context, existingVersions []string
 		gitMap[v.Version] = v
 	}
 
+	// All existing, whether in git or not.
 	var allExisting []Version
 
 	// find most recent version
@@ -35,9 +37,13 @@ func GetMostRecentExistingVersion(ctx context.Context, existingVersions []string
 			if mostRecent == nil || version.TimeStamp.After(mostRecent.TimeStamp) {
 				mostRecent = &version // new most recent found
 			}
-			continue
+		} else {
+			util.Debugf(ctx, "existing version not found on git: %s", existingVersion)
+			allExisting = append(allExisting, Version{
+				Version:   existingVersion,
+				TimeStamp: time.Time{},
+			})
 		}
-		util.Debugf(ctx, "existing version not found on git: %s", existingVersion)
 	}
 
 	return mostRecent, allExisting
