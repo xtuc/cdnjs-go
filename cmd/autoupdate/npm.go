@@ -18,6 +18,7 @@ func updateNpm(ctx context.Context, pckg *packages.Package) ([]newVersionToCommi
 	var allVersions []version
 
 	existingVersionSet := pckg.Versions()
+
 	util.Debugf(ctx, "existing npm versions: %v\n", existingVersionSet)
 
 	npmVersions, _ := npm.GetVersions(ctx, *pckg.Autoupdate.Target)
@@ -36,14 +37,20 @@ func updateNpm(ctx context.Context, pckg *packages.Package) ([]newVersionToCommi
 
 		newNpmVersions := make([]npm.Version, 0)
 
+		backfilled := 0
 		for i := len(versionDiff) - 1; i >= 0; i-- {
 			v := versionDiff[i]
-			if v.TimeStamp.After(lastExistingVersion.TimeStamp) {
-				newNpmVersions = append(newNpmVersions, v)
+			if !v.TimeStamp.After(lastExistingVersion.TimeStamp) {
+				// Backfill missing versions.
+				if backfilled == util.ImportAllMaxVersions {
+					continue
+				}
+				backfilled++
 			}
+			newNpmVersions = append(newNpmVersions, v)
 		}
 
-		sort.Sort(sort.Reverse(npm.ByTimeStamp(npmVersions)))
+		sort.Sort(sort.Reverse(npm.ByTimeStamp(newNpmVersions)))
 
 		newVersionsToCommit = doUpdateNpm(ctx, pckg, newNpmVersions)
 	} else {
